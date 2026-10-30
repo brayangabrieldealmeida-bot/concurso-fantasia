@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concurso de Fantasia – Gold</title>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Creepster&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0e0818;--card:#1c1230;--roxo:#7b3fe4;--lar:#ff7a1a;--txt:#f3eefc;--mut:#b7a8d6;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Outfit,system-ui,sans-serif;background:radial-gradient(1200px 600px at 50% -10%,#3a1d63 0%,var(--bg) 60%) fixed;color:var(--txt);min-height:100vh;padding-bottom:140px}
+  header{text-align:center;padding:28px 16px 8px}
+  .marca{letter-spacing:.3em;font-size:12px;color:var(--mut);text-transform:uppercase}
+  h1{font-family:Creepster,cursive;font-weight:400;font-size:clamp(34px,7vw,56px);color:var(--lar);text-shadow:0 0 18px rgba(255,122,26,.45);margin:6px 0}
+  .status{display:inline-block;margin-top:6px;padding:6px 14px;border-radius:999px;background:#2a1b45;font-size:14px;color:var(--mut)}
+  .status b{color:var(--txt)}
+  .dica{color:var(--mut);font-size:14px;margin-top:10px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;padding:18px;max-width:1200px;margin:0 auto}
+  @media(min-width:700px){.grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px}}
+  .card{background:var(--card);border-radius:16px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:transform .15s,border-color .15s,box-shadow .15s;position:relative}
+  .card:hover{transform:translateY(-3px)}
+  .card.sel{border-color:var(--lar);box-shadow:0 0 0 4px rgba(255,122,26,.25),0 10px 30px rgba(0,0,0,.5)}
+  .card img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block;background:#241640}
+  .info{padding:10px 12px 14px}
+  .nome{font-weight:800;font-size:17px}
+  .fant{color:var(--lar);font-weight:600;font-size:15px;margin:2px 0 6px}
+  .tags{display:flex;gap:6px;flex-wrap:wrap}
+  .tag{font-size:11px;padding:3px 8px;border-radius:999px;background:#2d1f4a;color:var(--mut)}
+  .tag.t{background:#3b2370;color:#e4d7ff}
+  .check{position:absolute;top:10px;right:10px;width:30px;height:30px;border-radius:50%;background:var(--lar);color:#fff;display:none;align-items:center;justify-content:center;font-weight:800}
+  .card.sel .check{display:flex}
+  .barra{position:fixed;left:0;right:0;bottom:0;background:rgba(20,12,34,.97);border-top:1px solid #3a2a5c;padding:14px 16px calc(14px + env(safe-area-inset-bottom));transform:translateY(110%);transition:transform .25s}
+  .barra.on{transform:none}
+  .barra .in{max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+  .esc{font-size:14px;color:var(--mut)} .esc b{color:var(--txt)}
+  .linha{display:flex;gap:10px}
+  input{flex:1;font:inherit;font-size:18px;padding:12px 14px;border-radius:12px;border:1px solid #4a3775;background:#100a1c;color:var(--txt);letter-spacing:.08em}
+  input:focus{outline:2px solid var(--roxo)}
+  button{font:inherit;font-weight:800;font-size:16px;padding:12px 20px;border:0;border-radius:12px;background:var(--lar);color:#fff;cursor:pointer;white-space:nowrap}
+  button:disabled{opacity:.5;cursor:default}
+  .erro{color:#ff8a8a;font-size:14px;min-height:18px}
+  .tela{position:fixed;inset:0;background:rgba(10,6,18,.94);display:none;align-items:center;justify-content:center;text-align:center;padding:24px;z-index:9}
+  .tela.on{display:flex}
+  .tela h2{font-family:Creepster,cursive;font-weight:400;font-size:44px;color:var(--lar);margin-bottom:10px}
+  .tela p{color:var(--mut);font-size:17px;max-width:420px}
+  .fechado .grid{opacity:.45;pointer-events:none}
+  .zoom{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;z-index:8}
+  .zoom.on{display:flex} .zoom img{max-width:94vw;max-height:90vh;border-radius:12px}
+  .lupa{position:absolute;top:10px;left:10px;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px}
+</style>
+</head>
+<body>
+<header>
+  <div class="marca">Gold Empresas · Halloween</div>
+  <h1 id="titulo"></h1>
+  <div class="status" id="status"></div>
+  <div class="dica" id="dica">Toque na fantasia favorita, digite seu CPF e confirme. Um voto por pessoa.</div>
+</header>
+<div class="grid" id="grid"></div>
+
+<div class="barra" id="barra"><div class="in">
+  <div class="esc">Seu voto: <b id="escolha"></b></div>
+  <div class="linha">
+    <input id="cpf" inputmode="numeric" maxlength="11" placeholder="CPF (só números)" autocomplete="off">
+    <button id="btn">Votar</button>
+  </div>
+  <div class="erro" id="erro"></div>
+</div></div>
+
+<div class="tela" id="ok"><div><h2>Voto registrado!</h2><p id="okmsg"></p></div></div>
+<div class="zoom" id="zoom"><img id="zimg" alt=""></div>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbxBTdfR1D41fRUwUlO1K3o-Nk_b-i6I_XbFjUMvFrbA7HzOexwAg5A5xYIS8FC1uJ6tMg/exec';
+const FALLBACK = {"agora": 0, "categorias": {"geral": {"titulo": "Melhor Fantasia Geral", "time": null, "inicio": 1793329200000, "fim": 1793372400000}, "eco": {"titulo": "Melhor Fantasia ECO", "time": "ECO", "inicio": 1793376000000, "fim": 1793383200000}, "brasil": {"titulo": "Melhor Fantasia BRASIL", "time": "BRASIL", "inicio": 1793376000000, "fim": 1793383200000}}, "participantes": [{"id": "01", "nome": "Brayan", "equipe": "Comercial", "time": "ECO", "fantasia": "Palhaço", "arquivo": "01_brayan.jpg"}, {"id": "02", "nome": "Jessica", "equipe": "BKO", "time": "ECO", "fantasia": "Noiva", "arquivo": "02_jessica.jpg"}, {"id": "03", "nome": "Fernanda", "equipe": "Gestão", "time": "ECO", "fantasia": "Harry Potter", "arquivo": "03_fernanda.jpg"}, {"id": "04", "nome": "Nicoli", "equipe": "Comercial", "time": "ECO", "fantasia": "Diabo", "arquivo": "04_nicoli.jpg"}, {"id": "05", "nome": "Ceci", "equipe": "Externos", "time": "ECO", "fantasia": "Carrie, A Estranha", "arquivo": "05_ceci.jpg"}, {"id": "06", "nome": "Josi", "equipe": "Externos", "time": "ECO", "fantasia": "Rainha de Copas", "arquivo": "06_josi.jpg"}, {"id": "07", "nome": "Dil", "equipe": "Pós-Vendas", "time": "ECO", "fantasia": "Pennywise", "arquivo": "07_dil.jpg"}, {"id": "08", "nome": "Kauanne", "equipe": "Pós-Vendas", "time": "ECO", "fantasia": "Annabelle", "arquivo": "08_kauanne.jpg"}, {"id": "09", "nome": "Melryan", "equipe": "Externos", "time": "ECO", "fantasia": "Arlequim", "arquivo": "09_melryan.jpg"}, {"id": "10", "nome": "Barbara", "equipe": "BKO", "time": "ECO", "fantasia": "Zumbi", "arquivo": "10_barbara.jpg"}, {"id": "11", "nome": "Tere", "equipe": "Gestão", "time": "ECO", "fantasia": "Michael Wazowski", "arquivo": "11_tere.jpg"}]};
+const params = new URLSearchParams(location.search);
+const CAT = (params.get('c') || 'geral').toLowerCase();
+let D = null, offset = 0, sel = null;
+const agora = () => Date.now() + offset;
+const fmt = t => new Date(t).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',timeZone:'America/Sao_Paulo'});
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+async function carregar(){
+  let dados = FALLBACK;
+  try {
+    const r = await fetch(API + '?api=lista&t=' + Date.now(), {credentials:'omit', redirect:'follow'});
+    const j = await r.json();
+    if (j && j.participantes && j.participantes.length) dados = j;
+  } catch(e) {}
+  const cats = dados.categorias, cat = cats[CAT] ? CAT : 'geral', c = cats[cat];
+  offset = dados.agora ? dados.agora - Date.now() : 0;
+  D = { cat, titulo: c.titulo, inicio: c.inicio, fim: c.fim,
+        participantes: dados.participantes.filter(p => !c.time || p.time === c.time) };
+  document.title = c.titulo + ' – Concurso de Fantasia';
+  document.getElementById('titulo').textContent = c.titulo;
+  montar(); atualiza(); setInterval(atualiza, 15000);
+}
+
+function montar(){
+  const grid = document.getElementById('grid'); grid.innerHTML = '';
+  D.participantes.forEach(p => {
+    const c = document.createElement('div');
+    c.className = 'card';
+    c.innerHTML = `<img loading="lazy" alt="" src="fotos/${encodeURIComponent(p.arquivo)}"><span class="lupa">⤢</span><span class="check">✓</span>
+      <div class="info"><div class="nome">${esc(p.nome)}</div><div class="fant">${esc(p.fantasia)}</div>
+      <div class="tags"><span class="tag">${esc(p.equipe)}</span><span class="tag t">${esc(p.time)}</span></div></div>`;
+    const img = c.querySelector('img');
+    c.querySelector('.lupa').onclick = ev => { ev.stopPropagation(); document.getElementById('zimg').src = img.src; document.getElementById('zoom').classList.add('on'); };
+    c.onclick = () => {
+      if (!aberto()) return;
+      document.querySelectorAll('.card.sel').forEach(x => x.classList.remove('sel'));
+      c.classList.add('sel'); sel = p;
+      document.getElementById('escolha').textContent = p.nome + ' – ' + p.fantasia;
+      document.getElementById('barra').classList.add('on');
+      document.getElementById('erro').textContent = '';
+    };
+    grid.appendChild(c);
+  });
+}
+document.getElementById('zoom').onclick = () => document.getElementById('zoom').classList.remove('on');
+
+function aberto(){ const t = agora(); return t >= D.inicio && t <= D.fim; }
+function atualiza(){
+  const t = agora(), s = document.getElementById('status');
+  if (t < D.inicio) { s.innerHTML = 'Votação abre às <b>' + fmt(D.inicio) + '</b>'; document.body.classList.add('fechado'); }
+  else if (t > D.fim) { s.innerHTML = '<b>Votação encerrada</b> às ' + fmt(D.fim); document.body.classList.add('fechado'); document.getElementById('barra').classList.remove('on'); }
+  else {
+    const m = Math.max(0, Math.round((D.fim - t) / 60000));
+    s.innerHTML = 'Votação aberta até <b>' + fmt(D.fim) + '</b> · faltam ' + (m >= 60 ? Math.floor(m/60) + 'h' + String(m%60).padStart(2,'0') : m + ' min');
+    document.body.classList.remove('fechado');
+  }
+}
+
+const cpf = document.getElementById('cpf');
+cpf.addEventListener('input', () => { cpf.value = cpf.value.replace(/\D/g, '').slice(0, 11); });
+function cpfValido(c){
+  if (!/^\d{11}$/.test(c) || /^(\d)\1{10}$/.test(c)) return false;
+  for (let t = 9; t < 11; t++){ let s = 0; for (let i = 0; i < t; i++) s += +c[i] * (t + 1 - i); if (((s*10)%11)%10 !== +c[t]) return false; }
+  return true;
+}
+
+document.getElementById('btn').onclick = async () => {
+  const erro = document.getElementById('erro');
+  if (!sel) { erro.textContent = 'Escolha uma fantasia.'; return; }
+  if (!aberto()) { erro.textContent = 'A votação não está aberta agora.'; return; }
+  if (!cpfValido(cpf.value)) { erro.textContent = 'CPF inválido. Digite os 11 números, sem ponto e sem traço.'; return; }
+  const b = document.getElementById('btn'); b.disabled = true; b.textContent = 'Enviando…'; erro.textContent = '';
+  try {
+    const r = await fetch(API, { method:'POST', credentials:'omit', redirect:'follow',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ cat: D.cat, cpf: cpf.value, id: sel.id }) });
+    const j = await r.json();
+    if (j.ok) {
+      document.getElementById('okmsg').textContent = j.msg + ' Obrigado por votar.';
+      document.getElementById('ok').classList.add('on'); document.getElementById('barra').classList.remove('on');
+    } else erro.textContent = j.msg;
+  } catch(e) { erro.textContent = 'Erro de conexão. Tente de novo.'; }
+  b.disabled = false; b.textContent = 'Votar';
+};
+carregar();
+</script>
+</body>
+</html>
